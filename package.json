@@ -1,0 +1,37 @@
+{
+  "name": "nested-yargs",
+  "version": "1.0.0",
+  "description": "An opinionated wrapper around yargs to make building nested command-line interfaces a breeze.",
+  "main": "index.js",
+  "dependencies": {
+    "bluebird": "^2.9.33",
+    "colors": "^1.1.2",
+    "lodash": "^3.10.0",
+    "yargs": "^3.15.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/auth0/nested-yargs.git"
+  },
+  "keywords": [
+    "cli",
+    "command",
+    "nested",
+    "sub",
+    "sub",
+    "command",
+    "yargs",
+    "commander",
+    "optimist"
+  ],
+  "author": "Geoffrey Goodman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/auth0/nested-yargs/issues"
+  },
+  "homepage": "https://github.com/auth0/nested-yargs#readme"
+}
