@@ -38,6 +38,7 @@ Category.prototype.run = function (yargs) {
         
     if (this.options.setup) this.options.setup(yargs);
     if (this.options.options) yargs.options(this.options.options);
+    if (this.options.examples) _.forEach(this.options.examples, yargs.example.bind(yargs));
     
     yargs
         .usage('Usage: ' + this.path.join(' ') + ' <command>')
@@ -87,6 +88,7 @@ Command.prototype.run = function (yargs) {
     
     if (this.options.setup) this.options.setup(yargs);
     if (this.options.options) yargs.options(this.options.options);
+    if (this.options.examples) _.forEach(this.options.examples, yargs.example.bind(yargs));
     
     yargs
         .check(function (argv) {
@@ -183,8 +185,8 @@ function parseParams (yargs, argv, command) {
         });
 }
 
-exports.createApp = function () {
-    return new Category();
+exports.createApp = function (options) {
+    return new Category('$', '', options);
 };
 
 exports.createCategory = function (name, description, options) {
