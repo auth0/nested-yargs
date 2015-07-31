@@ -123,7 +123,7 @@ Command.prototype.run = function (yargs) {
 function createErrorHandler (yargs) {
     return function (err) {
         yargs.showHelp();
-        
+
         console.log((err.message || err).red);
         process.exit(1);
     };
@@ -136,7 +136,7 @@ function checkForUnknownArguments (yargs, argv) {
     var demanded = yargs.getDemanded();
     var unknown = [];
     
-    Object.keys(yargs.parsed.aliases).forEach(function (key) {
+    Object.keys(yargs.parsed.aliases || {}).forEach(function (key) {
         yargs.parsed.aliases[key].forEach(function (alias) {
             aliasLookup[alias] = key;
         });
@@ -162,24 +162,41 @@ function checkForUnknownArguments (yargs, argv) {
 function parseParams (yargs, argv, command) {
     var required = 0;
     var optional = 0;
+    var variadic = false;
     
     argv.params = {};
     
     command.options.params.replace(/(<[^>]+>|\[[^\]]+\])/g,
         function (match) {
-            var isRequired = match[0] === '<';
-            var param = match.slice(1, -1);
+            if (variadic)
+                throw new Error('Variadic parameters must the final parameter.');
             
-            if (isRequired && optional > 0)
-                throw new Error('Optional parameters must be specified last');
+            var isRequired = match[0] === '<';
+            var param = match
+                .slice(1, -1)
+                .replace(/(.*)\.\.\.$/, function (m, param) {
+                    variadic = true;
+                    return param;
+                });
+            var value;
             
             if (isRequired) required++;
             else optional++;
-            
-            var value = argv._[command.path.length - 2 + required + optional];
-            
-            if (isRequired && !value) throw new Error('Parameter '
-                + '`' + param + '` is required.');
+                
+            if (variadic) {
+                value = argv._.slice(command.path.length - 2 + required + optional);
+                
+                if (isRequired && !value.length) throw new Error('Parameter '
+                    + '`' + param + '` is must have at least one item.');
+            } else {
+                if (isRequired && optional > 0)
+                    throw new Error('Optional parameters must be specified last');
+                
+                value = argv._[command.path.length - 2 + required + optional];
+                
+                if (isRequired && !value) throw new Error('Parameter '
+                    + '`' + param + '` is required.');
+            }    
             
             argv.params[param] = value;
         });
@@ -190,10 +207,26 @@ exports.createApp = function (options) {
 };
 
 exports.createCategory = function (name, description, options) {
+    if (_.isObject(description)) {
+        options = description;
+        description = '';
+    }
+    
     return new Category(name, description, options);
 };
 
 exports.createCommand = function (name, description, options) {
+    if (_.isObject(name)) {
+        options = name;
+        name = '$0';
+        description = '';
+    }
+    
+    if (_.isObject(description)) {
+        options = description;
+        description = '';
+    }
+    
     return new Command(name, description, options);
 };
 
