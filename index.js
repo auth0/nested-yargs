@@ -3,6 +3,8 @@ var Colors = require('colors');
 var Yargs = require('yargs');
 var _ = require('lodash');
 
+var Cli = module.exports;
+
 function Category (name, description, options) {
     this.commands = {};
     this.name = name || '$0';
@@ -46,8 +48,8 @@ Category.prototype.run = function (yargs) {
             var commandName = argv._[self.path.length - 1];
             var command = self.commands[commandName];
             
-            if (!commandName) throw new Error('Please enter a valid command.');
-            if (!command) throw new Error('No such command `' 
+            if (!commandName) throw Cli.usageError('Please enter a valid command.');
+            if (!command) throw Cli.usageError('No such command `' 
                 + self.path.slice(1).join(' ')+ ' '
                 + commandName + '`');
 
@@ -125,6 +127,7 @@ function createErrorHandler (yargs) {
         yargs.showHelp();
 
         console.log((err.message || err).red);
+        
         process.exit(1);
     };
 }
@@ -153,9 +156,9 @@ function checkForUnknownArguments (yargs, argv) {
     });
     
     if (unknown.length === 1) {
-        throw new Error('Unknown argument: ' + unknown[0]);
+        throw Cli.usageError('Unknown argument: ' + unknown[0]);
     } else if (unknown.length > 1) {
-        throw new Error('Unknown arguments: ' + unknown.join(', '));
+        throw Cli.usageError('Unknown arguments: ' + unknown.join(', '));
     }
 }
 
@@ -169,7 +172,7 @@ function parseParams (yargs, argv, command) {
     command.options.params.replace(/(<[^>]+>|\[[^\]]+\])/g,
         function (match) {
             if (variadic)
-                throw new Error('Variadic parameters must the final parameter.');
+                throw Cli.applicationError('Variadic parameters must the final parameter.');
             
             var isRequired = match[0] === '<';
             var param = match
@@ -186,15 +189,15 @@ function parseParams (yargs, argv, command) {
             if (variadic) {
                 value = argv._.slice(command.path.length - 2 + required + optional);
                 
-                if (isRequired && !value.length) throw new Error('Parameter '
+                if (isRequired && !value.length) throw Cli.usageError('Parameter '
                     + '`' + param + '` is must have at least one item.');
             } else {
                 if (isRequired && optional > 0)
-                    throw new Error('Optional parameters must be specified last');
+                    throw Cli.applicationError('Optional parameters must be specified last');
                 
                 value = argv._[command.path.length - 2 + required + optional];
                 
-                if (isRequired && !value) throw new Error('Parameter '
+                if (isRequired && !value) throw Cli.usageError('Parameter '
                     + '`' + param + '` is required.');
             }    
             
@@ -202,11 +205,11 @@ function parseParams (yargs, argv, command) {
         });
 }
 
-exports.createApp = function (options) {
+Cli.createApp = function (options) {
     return new Category('$', '', options);
 };
 
-exports.createCategory = function (name, description, options) {
+Cli.createCategory = function (name, description, options) {
     if (_.isObject(description)) {
         options = description;
         description = '';
@@ -215,7 +218,7 @@ exports.createCategory = function (name, description, options) {
     return new Category(name, description, options);
 };
 
-exports.createCommand = function (name, description, options) {
+Cli.createCommand = function (name, description, options) {
     if (_.isObject(name)) {
         options = name;
         name = '$0';
@@ -231,8 +234,28 @@ exports.createCommand = function (name, description, options) {
 };
 
 
-exports.run = function (command, yargs) {
+Cli.run = function (command, yargs) {
     var argv = command.run(yargs || Yargs);
     
     return argv;
+};
+
+Cli.usageError = function (message, data) {
+    var error = new Error(message ? message : undefined);
+    
+    error.data = data || null;
+    error.isUsageError = true;
+    
+    console.dir(error);
+    
+    return error;
+};
+
+Cli.applicationError = function (message, data) {
+    var error = new Error(message ? message : undefined);
+    
+    error.data = data || null;
+    error.isApplicationError = true;
+    
+    return error;
 };
