@@ -41,6 +41,7 @@ Category.prototype.run = function (yargs) {
     if (this.options.setup) this.options.setup(yargs);
     if (this.options.options) yargs.options(this.options.options);
     if (this.options.examples) _.forEach(this.options.examples, yargs.example.bind(yargs));
+    if (this.options.version) yargs.version(this.options.version);
     
     yargs
         .usage('Usage: ' + this.path.join(' ') + ' <command>')
@@ -91,6 +92,7 @@ Command.prototype.run = function (yargs) {
     if (this.options.setup) this.options.setup(yargs);
     if (this.options.options) yargs.options(this.options.options);
     if (this.options.examples) _.forEach(this.options.examples, yargs.example.bind(yargs));
+    if (this.options.version) yargs.version(this.options.version);
     
     yargs
         .check(function (argv) {
