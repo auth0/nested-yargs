@@ -189,7 +189,8 @@ function parseParams (yargs, argv, command) {
             else optional++;
                 
             if (variadic) {
-                value = argv._.slice(command.path.length - 2 + required + optional);
+                value = argv._.slice(command.path.length - 2 + required + optional)
+                    .map(String);
                 
                 if (isRequired && !value.length) throw Cli.usageError('Parameter '
                     + '`' + param + '` is must have at least one item.');
@@ -197,7 +198,7 @@ function parseParams (yargs, argv, command) {
                 if (isRequired && optional > 0)
                     throw Cli.applicationError('Optional parameters must be specified last');
                 
-                value = argv._[command.path.length - 2 + required + optional];
+                value = String(argv._[command.path.length - 2 + required + optional]);
                 
                 if (isRequired && !value) throw Cli.usageError('Parameter '
                     + '`' + param + '` is required.');
