@@ -203,7 +203,7 @@ function parseParams (yargs, argv, command) {
 
                 if (value) value = String(value);
 
-                if (isRequired && !value) throw Cli.usageError('Parameter '
+                if (isRequired && typeof value === 'undefined') throw Cli.usageError('Parameter '
                     + '`' + param + '` is required.');
             }
 
